@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   @override
@@ -15,18 +17,130 @@ class Calculator extends StatefulWidget {
 }
 
 class _CalculatorState extends State<Calculator> {
-  dynamic displaytxt = '0';
+  String displayText = '0';
+  double numOne = 0;
+  double numTwo = 0;
+  String result = '';
+  String finalResult = '0';
+  String operation = '';
+  String prevOperation = '';
 
-  Widget calcbutton(String btntxt, Color btncolor, Color txtcolor) {
-    return ElevatedButton(
-      onPressed: () {
-        calculation(btntxt);
-      },
-      child: Text(btntxt, style: TextStyle(fontSize: 35, color: txtcolor)),
-      style: ElevatedButton.styleFrom(
-        shape: CircleBorder(),
-        backgroundColor: btncolor,
-        padding: EdgeInsets.all(20),
+  void calculation(String btnText) {
+    if (btnText == 'AC') {
+      displayText = '0';
+      numOne = 0;
+      numTwo = 0;
+      result = '';
+      finalResult = '0';
+      operation = '';
+      prevOperation = '';
+    } else if (operation == '=' && btnText == '=') {
+      if (prevOperation == '+') {
+        finalResult = add();
+      } else if (prevOperation == '-') {
+        finalResult = subtract();
+      } else if (prevOperation == 'x') {
+        finalResult = multiply();
+      } else if (prevOperation == '/') {
+        finalResult = divide();
+      }
+    } else if (btnText == '+' ||
+        btnText == '-' ||
+        btnText == 'x' ||
+        btnText == '/' ||
+        btnText == '=') {
+      if (numOne == 0) {
+        numOne = double.parse(result);
+      } else {
+        numTwo = double.parse(result);
+      }
+
+      if (operation == '+') {
+        finalResult = add();
+      } else if (operation == '-') {
+        finalResult = subtract();
+      } else if (operation == 'x') {
+        finalResult = multiply();
+      } else if (operation == '/') {
+        finalResult = divide();
+      }
+      prevOperation = operation;
+      operation = btnText;
+      result = '';
+    } else if (btnText == '%') {
+      result = (numOne / 100).toString();
+      finalResult = doesContainDecimal(result);
+    } else if (btnText == '.') {
+      if (!result.contains('.')) {
+        result += '.';
+      }
+      finalResult = result;
+    } else if (btnText == '+/-') {
+      result = result.startsWith('-') ? result.substring(1) : '-' + result;
+      finalResult = result;
+    } else {
+      result += btnText;
+      finalResult = result;
+    }
+
+    setState(() {
+      displayText = finalResult;
+    });
+  }
+
+  String add() {
+    result = (numOne + numTwo).toString();
+    numOne = double.parse(result);
+    return doesContainDecimal(result);
+  }
+
+  String subtract() {
+    result = (numOne - numTwo).toString();
+    numOne = double.parse(result);
+    return doesContainDecimal(result);
+  }
+
+  String multiply() {
+    result = (numOne * numTwo).toString();
+    numOne = double.parse(result);
+    return doesContainDecimal(result);
+  }
+
+  String divide() {
+    result = (numOne / numTwo).toString();
+    numOne = double.parse(result);
+    return doesContainDecimal(result);
+  }
+
+  String doesContainDecimal(dynamic result) {
+    if (result.toString().contains('.')) {
+      List<String> splitDecimal = result.toString().split('.');
+      if (!(int.parse(splitDecimal[1]) > 0)) return splitDecimal[0];
+    }
+    return result.toString();
+  }
+
+  Widget buildButton(
+    String text,
+    Color bgColor,
+    Color textColor, {
+    int flex = 1,
+  }) {
+    return Expanded(
+      flex: flex,
+      child: Container(
+        margin: EdgeInsets.all(8),
+        child: ElevatedButton(
+          onPressed: () {
+            calculation(text);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: bgColor,
+            shape: text == '0' ? StadiumBorder() : CircleBorder(),
+            padding: EdgeInsets.all(20),
+          ),
+          child: Text(text, style: TextStyle(fontSize: 30, color: textColor)),
+        ),
       ),
     );
   }
@@ -36,162 +150,69 @@ class _CalculatorState extends State<Calculator> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(title: Text('Calculator'), backgroundColor: Colors.black),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Text(
-                      displaytxt.toString(),
-                      textAlign: TextAlign.left,
-                      style: TextStyle(color: Colors.white, fontSize: 100),
-                    ),
-                  ),
-                ],
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.all(20),
+              alignment: Alignment.bottomRight,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Text(
+                  displayText,
+                  style: TextStyle(color: Colors.white, fontSize: 80),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                calcbutton('AC', Colors.grey, Colors.black),
-                calcbutton('+/-', Colors.grey, Colors.black),
-                calcbutton('%', Colors.grey, Colors.black),
-                calcbutton('/', Colors.amber[700]!, Colors.white),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                calcbutton('7', Colors.grey[850]!, Colors.white),
-                calcbutton('8', Colors.grey[850]!, Colors.white),
-                calcbutton('9', Colors.grey[850]!, Colors.white),
-                calcbutton('x', Colors.amber[700]!, Colors.white),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                calcbutton('4', Colors.grey[850]!, Colors.white),
-                calcbutton('5', Colors.grey[850]!, Colors.white),
-                calcbutton('6', Colors.grey[850]!, Colors.white),
-                calcbutton('-', Colors.amber[700]!, Colors.white),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                calcbutton('1', Colors.grey[850]!, Colors.white),
-                calcbutton('2', Colors.grey[850]!, Colors.white),
-                calcbutton('3', Colors.grey[850]!, Colors.white),
-                calcbutton('+', Colors.amber[700]!, Colors.white),
-              ],
-            ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                ElevatedButton(
-                  onPressed: () {
-                    calculation('0');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: StadiumBorder(),
-                    backgroundColor: Colors.grey[850],
-                    padding: EdgeInsets.fromLTRB(34, 20, 128, 20),
-                  ),
-                  child: Text(
-                    '0',
-                    style: TextStyle(fontSize: 35, color: Colors.white),
-                  ),
-                ),
-                calcbutton('.', Colors.grey[850]!, Colors.white),
-                calcbutton('=', Colors.amber[700]!, Colors.white),
-              ],
-            ),
-            SizedBox(height: 10),
-          ],
-        ),
+          ),
+          Column(
+            children: [
+              Row(
+                children: [
+                  buildButton('AC', Colors.grey, Colors.black),
+                  buildButton('+/-', Colors.grey, Colors.black),
+                  buildButton('%', Colors.grey, Colors.black),
+                  buildButton('/', Colors.amber, Colors.white),
+                ],
+              ),
+              Row(
+                children: [
+                  buildButton('7', Colors.grey[850]!, Colors.white),
+                  buildButton('8', Colors.grey[850]!, Colors.white),
+                  buildButton('9', Colors.grey[850]!, Colors.white),
+                  buildButton('x', Colors.amber, Colors.white),
+                ],
+              ),
+              Row(
+                children: [
+                  buildButton('4', Colors.grey[850]!, Colors.white),
+                  buildButton('5', Colors.grey[850]!, Colors.white),
+                  buildButton('6', Colors.grey[850]!, Colors.white),
+                  buildButton('-', Colors.amber, Colors.white),
+                ],
+              ),
+              Row(
+                children: [
+                  buildButton('1', Colors.grey[850]!, Colors.white),
+                  buildButton('2', Colors.grey[850]!, Colors.white),
+                  buildButton('3', Colors.grey[850]!, Colors.white),
+                  buildButton('+', Colors.amber, Colors.white),
+                ],
+              ),
+              Row(
+                children: [
+                  buildButton('0', Colors.grey[850]!, Colors.white, flex: 2),
+                  buildButton('.', Colors.grey[850]!, Colors.white),
+                  buildButton('=', Colors.amber, Colors.white),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
-  }
-
-  dynamic text = '0';
-  double numOne = 0;
-  double numTwo = 0;
-  dynamic result = '';
-  dynamic finalResult = '0';
-  dynamic opr = '';
-  dynamic preOpr = '';
-
-  void calculation(btnText) {
-    if (btnText == 'AC') {
-      text = '0';
-      numOne = 0;
-      numTwo = 0;
-      result = '';
-      finalResult = '0';
-      opr = '';
-      preOpr = '';
-    } else if (opr == '=' && btnText == '=') {
-      if (preOpr == '+') finalResult = add();
-      if (preOpr == '-') finalResult = sub();
-      if (preOpr == 'x') finalResult = mul();
-      if (preOpr == '/') finalResult = div();
-    } else if ('+-x/='.contains(btnText)) {
-      if (numOne == 0) {
-        numOne = double.parse(result);
-      } else {
-        numTwo = double.parse(result);
-      }
-      if (opr == '+') finalResult = add();
-      if (opr == '-') finalResult = sub();
-      if (opr == 'x') finalResult = mul();
-      if (opr == '/') finalResult = div();
-      preOpr = opr;
-      opr = btnText;
-      result = '';
-    } else if (btnText == '%') {
-      result = numOne / 100;
-      finalResult = doesContainDecimal(result);
-    } else if (btnText == '.') {
-      if (!result.toString().contains('.')) {
-        result = result.toString() + '.';
-      }
-      finalResult = result;
-    } else if (btnText == '+/-') {
-      result =
-          result.toString().startsWith('-')
-              ? result.toString().substring(1)
-              : '-' + result.toString();
-      finalResult = result;
-    } else {
-      result += btnText;
-      finalResult = result;
-    }
-    setState(() {
-      displaytxt = finalResult;
-    });
-  }
-
-  String add() => doesContainDecimal((numOne += numTwo).toString());
-  String sub() => doesContainDecimal((numOne -= numTwo).toString());
-  String mul() => doesContainDecimal((numOne *= numTwo).toString());
-  String div() => doesContainDecimal((numOne /= numTwo).toString());
-
-  String doesContainDecimal(dynamic result) {
-    return result.toString().contains('.') &&
-            result.toString().split('.')[1] == '0'
-        ? result.toString().split('.')[0]
-        : result;
   }
 }
